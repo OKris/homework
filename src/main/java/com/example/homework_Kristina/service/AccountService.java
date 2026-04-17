@@ -1,8 +1,10 @@
 package com.example.homework_Kristina.service;
 
+import com.example.homework_Kristina.dto.AccountDto;
 import com.example.homework_Kristina.entity.Account;
 import com.example.homework_Kristina.repository.AccountRepository;
 import com.example.homework_Kristina.util.Validations;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,10 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public void validateAccount(Account account) {
+    @Autowired
+    ModelMapper modelMapper;
+
+    public void validateAccount(AccountDto account) {
         if (account.getName() == null || account.getName().isEmpty()) {
             throw new RuntimeException("Name cannot be empty");
         }
@@ -34,9 +39,10 @@ public class AccountService {
         }
     }
 
-    public Account createAccount(Account account) {
-       validateAccount(account);
-       return accountRepository.save(account);
+    public Account createAccount(AccountDto account) {
+        validateAccount(account);
+        Account newAccount = modelMapper.map(account, Account.class);
+        return accountRepository.save(newAccount);
     }
 
 
@@ -44,13 +50,12 @@ public class AccountService {
         return accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account not found"));
     }
 
-    public Account updateAccountById(Long id, Account account) {
+    public Account updateAccountById(Long id, AccountDto account) {
         Account excistingAccount = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account not found"));
 
         validateAccount(account);
         excistingAccount.setName(account.getName());
         excistingAccount.setPhoneNr(account.getPhoneNr());
-
         return accountRepository.save(excistingAccount);
     }
 

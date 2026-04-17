@@ -27,12 +27,12 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,50}$")
+    @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ'][A-Za-zÀ-ÖØ-öø-ÿ' -]{1,49}$")
     @NotBlank
     private String name;
 
     @Pattern(regexp = "^\\+[0-9]{7,15}$")
-    @Column(unique=true, length = 16)
+    @Column(nullable=true, unique=true, length = 16)
     private String phoneNr;
 
     @CreatedDate

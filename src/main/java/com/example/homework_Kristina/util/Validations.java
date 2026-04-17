@@ -11,7 +11,7 @@ public class Validations {
 
     private static final PhoneNumberUtil util = PhoneNumberUtil.getInstance();
 
-    private static final Pattern namePattern = Pattern.compile("^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,50}$");
+    private static final Pattern namePattern = Pattern.compile("^[A-Za-zÀ-ÖØ-öø-ÿ'][A-Za-zÀ-ÖØ-öø-ÿ' -]{1,49}$");
 
     public static String phoneNumberConversion(String rawNumber, String region) {
         try {

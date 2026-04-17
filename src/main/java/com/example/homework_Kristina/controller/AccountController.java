@@ -1,5 +1,6 @@
 package com.example.homework_Kristina.controller;
 
+import com.example.homework_Kristina.dto.AccountDto;
 import com.example.homework_Kristina.entity.Account;
 import com.example.homework_Kristina.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ public class AccountController {
     private AccountService accountService;
 
     @PostMapping("/accounts")
-    public Account createAccount(@RequestBody Account account){
+    public Account createAccount(@RequestBody AccountDto account){
         return accountService.createAccount(account);
     }
 
@@ -23,7 +24,7 @@ public class AccountController {
     }
 
     @PutMapping("/accounts/{id}")
-    public Account updateAccount(@PathVariable Long id, @RequestBody Account account){
+    public Account updateAccount(@PathVariable Long id, @RequestBody AccountDto account){
         return accountService.updateAccountById(id, account);
     }
 
