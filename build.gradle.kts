@@ -16,6 +16,11 @@ java {
 
 repositories {
 	mavenCentral()
+	maven("https://repo1.maven.org/maven2/")
+}
+
+val mockitoAgent by configurations.creating {
+	isTransitive = false
 }
 
 dependencies {
@@ -36,11 +41,20 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("com.googlecode.libphonenumber:libphonenumber:8.13.0")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+	testImplementation("org.mockito:mockito-core:5.11.0")
+	testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+
+	mockitoAgent("net.bytebuddy:byte-buddy-agent:1.14.12")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+
+	doFirst {
+		jvmArgs("-javaagent:${mockitoAgent.singleFile}")
+	}
 }

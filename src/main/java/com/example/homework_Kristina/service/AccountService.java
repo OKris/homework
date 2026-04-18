@@ -21,7 +21,7 @@ public class AccountService {
     ModelMapper modelMapper;
 
     public void validateAccount(AccountDto account) {
-        if (account.getName() == null || account.getName().isEmpty()) {
+        if (account.getName() == null || account.getName().trim().isEmpty()) {
             throw new RuntimeException("Name cannot be empty");
         }
 
@@ -31,7 +31,7 @@ public class AccountService {
 
         if (account.getPhoneNr() != null && !account.getPhoneNr().isBlank()) {
             if (accountRepository.findByPhoneNr(account.getPhoneNr()).isPresent()){
-                //throw new RuntimeException("Phone number already exists");
+                throw new RuntimeException("Phone number already exists");
             }
 
             String number = Validations.phoneNumberConversion(account.getPhoneNr(), "EE");
