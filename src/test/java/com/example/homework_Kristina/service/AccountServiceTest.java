@@ -134,6 +134,15 @@ class AccountServiceTest {
     }
 
     @Test
+    void createAccountWithInvalidPhoneNr() {
+        accountDto.setPhoneNr("123");
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            accountService.createAccount(accountDto);
+        });
+        assertEquals("Phone parsing failed, Invalid phone number", ex.getMessage());
+    }
+
+    @Test
     void createAccountWithEmptyName() {
         accountDto.setName(" ");
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
