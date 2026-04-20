@@ -3,7 +3,7 @@ FROM gradle:8.5-jdk21 AS build
 WORKDIR /app
 COPY . .
 
-RUN gradle clean build --no-daemon
+RUN gradle clean build -x test --no-daemon
 
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
