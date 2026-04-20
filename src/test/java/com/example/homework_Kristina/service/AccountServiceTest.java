@@ -3,6 +3,7 @@ package com.example.homework_Kristina.service;
 import com.example.homework_Kristina.dto.AccountDto;
 import com.example.homework_Kristina.entity.Account;
 import com.example.homework_Kristina.repository.AccountRepository;
+import com.example.homework_Kristina.util.Validations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.security.auth.login.AccountNotFoundException;
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
@@ -49,7 +51,50 @@ class AccountServiceTest {
     }
 
     @Test
+    void validateAccountWithNoName() {
+        accountDto.setName(null);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> accountService.validateAccount(accountDto, null));
+
+        assertEquals("Name cannot be empty", ex.getMessage());
+    }
+
+    @Test
+    void validateAccountWithInvalidName() {
+        accountDto.setName("J:ohn");
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> accountService.validateAccount(accountDto, null));
+        assertTrue(ex.getMessage().contains("Name is not valid"));
+    }
+
+    @Test
+    void validateAccountWithDuplicatePhoneNr() {
+        accountDto.setName("John Paul");
+        accountDto.setPhoneNr("123456789");
+
+        when(accountRepository.findByPhoneNr(accountDto.getPhoneNr())).thenReturn((Optional.of(new Account())));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> accountService.validateAccount(accountDto, null));
+
+        assertEquals("Phone number already exists", ex.getMessage());
+    }
+
+    @Test
+    void validateAccountWithUpdate() {
+        account.setId(1L);
+        accountDto.setName("John Paul");
+        accountDto.setPhoneNr("37255555555");
+
+        when(accountRepository.findByPhoneNr(accountDto.getPhoneNr())).thenReturn((Optional.of(account)));
+        assertDoesNotThrow(() ->
+                accountService.validateAccount(accountDto, 1L)
+        );
+    }
+
+    @Test
     void validateAccount() {
+        accountDto.setPhoneNr("37255555555");
+        when(accountRepository.findByPhoneNr(accountDto.getPhoneNr())).thenReturn((Optional.empty()));
+        accountService.validateAccount(accountDto, null);
+
+        assertEquals(Validations.phoneNumberConversion("37255555555", "EE"), accountDto.getPhoneNr());
     }
 
     @Test
@@ -80,7 +125,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void createAccountWithFaultyName() {
+    void createAccountWithInvalidName() {
         accountDto.setName("-John Doe5");
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
             accountService.createAccount(accountDto);
@@ -109,7 +154,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void findAccountByWrongId() {
+    void findAccountByInvalidId() {
         AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.findAccountById(id);
         });
@@ -144,7 +189,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void updateAccountWithWrongId() {
+    void updateAccountWithInvalidId() {
         AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.updateAccountById(id, accountDto);
         });
