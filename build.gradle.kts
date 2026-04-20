@@ -1,6 +1,6 @@
 plugins {
 	java
-	id("org.springframework.boot") version "4.0.5"
+	id("org.springframework.boot") version "3.2.5"
 	id("io.spring.dependency-management") version "1.1.7"
 
 }
@@ -23,23 +23,39 @@ val mockitoAgent by configurations.creating {
 	isTransitive = false
 }
 
+val integrationTest by sourceSets.creating {
+	java.srcDir("src/integrationTest/java")
+	resources.srcDir("src/integrationTest/resources")
+
+	compileClasspath += sourceSets.main.get().output +
+			configurations.testRuntimeClasspath.get()
+
+	runtimeClasspath += output + compileClasspath
+}
+
+configurations {
+	val integrationTestImplementation by getting {
+		extendsFrom(configurations.testImplementation.get())
+	}
+
+	val integrationTestRuntimeOnly by getting {
+		extendsFrom(configurations.testRuntimeOnly.get())
+	}
+}
+
 dependencies {
-	implementation("org.springframework.boot:spring-boot-h2console")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
-	implementation("org.springframework.boot:spring-boot-starter-liquibase")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+	implementation("org.liquibase:liquibase-core")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.0")
 	implementation("org.modelmapper:modelmapper:3.2.6")
 	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-jdbc-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.googlecode.libphonenumber:libphonenumber:8.13.0")
 	testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 	testImplementation("org.mockito:mockito-core:5.11.0")
@@ -47,8 +63,31 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+	add("integrationTestImplementation", "org.springframework.boot:spring-boot-starter-test")
+	add("integrationTestRuntimeOnly", "org.junit.platform:junit-platform-launcher")
 
 	mockitoAgent("net.bytebuddy:byte-buddy-agent:1.14.12")
+}
+
+tasks.register<Test>("integrationTest") {
+	description = "Runs integration tests"
+	group = "verification"
+
+	testClassesDirs = integrationTest.output.classesDirs
+	classpath = integrationTest.runtimeClasspath
+
+	shouldRunAfter(tasks.test)
+
+	useJUnitPlatform()
+
+}
+
+tasks.named<ProcessResources>("processIntegrationTestResources") {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named("check") {
+	dependsOn("integrationTest")
 }
 
 tasks.withType<Test> {

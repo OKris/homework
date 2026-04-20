@@ -10,9 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -101,7 +100,7 @@ class AccountServiceTest {
 
 
     @Test
-    void findAccountById() {
+    void findAccountById() throws AccountNotFoundException {
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         Account result = accountService.findAccountById(account.getId());
@@ -111,14 +110,14 @@ class AccountServiceTest {
 
     @Test
     void findAccountByWrongId() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+        AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.findAccountById(id);
         });
         assertEquals("Account not found", ex.getMessage());
     }
 
     @Test
-    void updateAccountById() {
+    void updateAccountById() throws AccountNotFoundException {
         accountDto.setName("Zeus O'Connel");
         accountDto.setPhoneNr("56456783");
 
@@ -132,7 +131,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void updateAccountByIdWithOnlyName() {
+    void updateAccountByIdWithOnlyName() throws AccountNotFoundException {
         accountDto.setName("Mary");
 
         when(accountRepository.findById(id)).thenReturn(Optional.of(account));
@@ -146,7 +145,7 @@ class AccountServiceTest {
 
     @Test
     void updateAccountWithWrongId() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+        AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.updateAccountById(id, accountDto);
         });
         assertEquals("Account not found", ex.getMessage());

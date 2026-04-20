@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 @RestController
 public class AccountController {
 
@@ -19,12 +21,12 @@ public class AccountController {
     }
 
     @GetMapping("/accounts/{id}")
-    public Account getAccountById(@PathVariable Long id){
+    public Account getAccountById(@PathVariable Long id) throws AccountNotFoundException {
         return accountService.findAccountById(id);
     }
 
     @PutMapping("/accounts/{id}")
-    public Account updateAccount(@PathVariable Long id, @RequestBody AccountDto account){
+    public Account updateAccount(@PathVariable Long id, @RequestBody AccountDto account) throws AccountNotFoundException {
         return accountService.updateAccountById(id, account);
     }
 

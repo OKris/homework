@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.util.Optional;
 
 @Service
@@ -20,7 +21,7 @@ public class AccountService {
     @Autowired
     ModelMapper modelMapper;
 
-    public void validateAccount(AccountDto account) {
+    public void validateName(AccountDto account) {
         if (account.getName() == null || account.getName().trim().isEmpty()) {
             throw new RuntimeException("Name cannot be empty");
         }
@@ -28,6 +29,10 @@ public class AccountService {
         if (!Validations.isValidName(account.getName())) {
             throw new RuntimeException("Name is not valid, no special characters should be used");
         }
+    }
+
+    public void validateCreateAccount(AccountDto account) {
+        validateName(account);
 
         if (account.getPhoneNr() != null && !account.getPhoneNr().isBlank()) {
             if (accountRepository.findByPhoneNr(account.getPhoneNr()).isPresent()){
@@ -39,21 +44,35 @@ public class AccountService {
         }
     }
 
+    public void validateUpdateAccount(Long id, AccountDto account) {
+        validateName(account);
+
+        if (account.getPhoneNr() != null && !account.getPhoneNr().isBlank()) {
+            Optional<Account> existing = accountRepository.findByPhoneNr(account.getPhoneNr());
+            if (existing.isPresent() && !existing.get().getId().equals(id)){
+                throw new RuntimeException("Phone number already exists");
+            }
+
+            String number = Validations.phoneNumberConversion(account.getPhoneNr(), "EE");
+            account.setPhoneNr(number);
+        }
+    }
+
     public Account createAccount(AccountDto account) {
-        validateAccount(account);
+        validateCreateAccount(account);
         Account newAccount = modelMapper.map(account, Account.class);
         return accountRepository.save(newAccount);
     }
 
 
-    public Account findAccountById(Long id) {
-        return accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account not found"));
+    public Account findAccountById(Long id) throws AccountNotFoundException {
+        return accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException( "Account not found"));
     }
 
-    public Account updateAccountById(Long id, AccountDto account) {
-        Account excistingAccount = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account not found"));
+    public Account updateAccountById(Long id, AccountDto account) throws AccountNotFoundException {
+        Account excistingAccount = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        validateAccount(account);
+        validateUpdateAccount(id, account);
         excistingAccount.setName(account.getName());
         excistingAccount.setPhoneNr(account.getPhoneNr());
         return accountRepository.save(excistingAccount);
